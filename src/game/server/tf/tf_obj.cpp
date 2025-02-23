@@ -2845,13 +2845,14 @@ void CBaseObject::DoWrenchHitEffect( Vector hitLoc, bool bRepairHit, bool bUpgra
 //-----------------------------------------------------------------------------
 bool CBaseObject::CheckUpgradeOnHit( CTFPlayer *pPlayer )
 {
-	if ( !CanBeUpgraded() )
-		return false;
+	// REMOVE
+	//if ( !CanBeUpgraded() )
+	//	return false;
 
 	if ( m_bCarryDeploy )
 		return false;
 
-	if ( CanBeUpgraded( pPlayer ) )
+	if ( true/*CanBeUpgraded( pPlayer )*/ )
 	{
 		int iPlayerMetal = pPlayer->GetAmmoCount( TF_AMMO_METAL );
 		int nMaxToAdd = GetUpgradeAmountPerHit();

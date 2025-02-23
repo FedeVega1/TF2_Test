@@ -382,8 +382,9 @@ void CObjectSentrygun::MakeMiniBuilding( CTFPlayer* pPlayer )
 //-----------------------------------------------------------------------------
 int CObjectSentrygun::GetMaxUpgradeLevel( )
 { 
-	if ( IsDisposableBuilding() || IsMiniBuilding() )
-		return SENTRYGUN_MAX_LEVEL_MINI;
+	// REMOVE
+	//if ( IsDisposableBuilding() || IsMiniBuilding() )
+	//	return SENTRYGUN_MAX_LEVEL_MINI;
 
 	return BaseClass::GetMaxUpgradeLevel(); 
 }

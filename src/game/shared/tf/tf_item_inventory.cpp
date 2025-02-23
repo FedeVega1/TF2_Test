@@ -2121,3 +2121,21 @@ bool CTFPlayerInventory::EquipLocalPreset(equipped_class_t unClass, equipped_pre
 	return true;
 }
 #endif
+
+void CTFPlayerInventory::GenerateRandomLoadoutForFakeClient(const loadout_positions_t& loadoutPos, const int& classIndex)
+{
+	//CUtlVector<const CEconItemDefinition*> loadoutVector;
+
+	//const CEconItemSchema::ItemDefinitionMap_t& mapItemDefs = ItemSystem()->GetItemSchema()->GetItemDefinitionMap();
+	//FOR_EACH_MAP_FAST(mapItemDefs, i)
+	//{
+	//	const CEconItemDefinition* pItemDef = dynamic_cast<const CEconItemDefinition*>(mapItemDefs[i]);
+	//	if (!pItemDef || pItemDef->GetLoadoutSlot(classIndex) != loadoutPos) continue;
+
+	//	loadoutVector.AddToTail(pItemDef);
+	//}
+
+	//if (loadoutVector.Count() == 0) return;
+	//int random = RandomInt(0, loadoutVector.Count() - 1);
+	//m_LoadoutItems[classIndex][loadoutPos] = loadoutVector[random]->
+}

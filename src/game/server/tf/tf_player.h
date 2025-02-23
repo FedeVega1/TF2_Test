@@ -1545,6 +1545,10 @@ public:
 
 	virtual bool BCanCallVote() OVERRIDE;
 	bool m_bFirstSpawnAndCanCallVote = false;
+
+// MOD
+private:
+	void GenerateFakeInventory();
 };
 
 //-----------------------------------------------------------------------------

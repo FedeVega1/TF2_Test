@@ -874,6 +874,21 @@ bool CTFBot::GetWeightDesiredClassToSpawn( CUtlVector< ETFClass > &vecClassToSpa
 		{ TF_CLASS_UNDEFINED,		0, -1 },
 	};
 
+	static ClassSelectionInfo ctfRoster[] =
+	{
+		{ TF_CLASS_SCOUT,			0, 0, 0, { 1, 1, 2, 2 } },
+		{ TF_CLASS_SOLDIER,			0, 0, 0, { NoLimit, NoLimit, NoLimit, NoLimit } },
+		{ TF_CLASS_PYRO,			5, 0, 0, { 1, 1, 2, 3 } },
+		{ TF_CLASS_DEMOMAN,			0, 0, 1, { 1, 1, 2, 2 } },
+		{ TF_CLASS_HEAVYWEAPONS,	3, 0, 1, { 1, 1, 2, 2 } },
+		{ TF_CLASS_ENGINEER,		3, 4, 1, { 1, 2, 2, 3 } },
+		{ TF_CLASS_MEDIC,			3, 0, 1, { 0, 1, 1, 2 } },
+		{ TF_CLASS_SNIPER,			5, 0, 0, { 0, 0, 1, 1 } },
+		{ TF_CLASS_SPY,				3, 4, 1, { 0, 1, 2, 2 } },
+
+		{ TF_CLASS_UNDEFINED,		0, -1 },
+	};
+
 	// count classes in use by my team, not including me
 	CCountClassMembers currentRoster( this, GetTeamNumber() );
 	ForEachPlayer( currentRoster );
@@ -921,6 +936,10 @@ bool CTFBot::GetWeightDesiredClassToSpawn( CUtlVector< ETFClass > &vecClassToSpa
 		{
 			desiredRoster = defenseRoster;
 		}
+	}
+	else if (TFGameRules()->GetGameType() == TF_GAMETYPE_CTF || TFGameRules()->GetGameType() == TF_GAMETYPE_ARENA)
+	{
+		desiredRoster = ctfRoster;
 	}
 
 	// build vector of classes we can pick from
@@ -1074,6 +1093,23 @@ ETFClass CTFBot::GetPresetClassToSpawn() const
 		TF_CLASS_SPY,
 	};
 
+	static ETFClass ctfRoster[] =
+	{
+		TF_CLASS_MEDIC,
+		TF_CLASS_ENGINEER,
+		TF_CLASS_SCOUT,
+		TF_CLASS_SOLDIER,
+		TF_CLASS_DEMOMAN,
+		TF_CLASS_SCOUT,
+		TF_CLASS_SOLDIER,
+
+		TF_CLASS_HEAVYWEAPONS,
+		TF_CLASS_PYRO,
+		TF_CLASS_MEDIC,
+		TF_CLASS_SNIPER,
+		TF_CLASS_SPY,
+	};
+
 	// make sure we have completed list of rolls per team
 	COMPILE_TIME_ASSERT( ARRAYSIZE( offenseRoster ) == 12 );
 	COMPILE_TIME_ASSERT( ARRAYSIZE( defenseRoster ) == 12 );
@@ -1122,6 +1158,10 @@ ETFClass CTFBot::GetPresetClassToSpawn() const
 		{
 			desiredRoster = defenseRoster;
 		}
+	}
+	else if (TFGameRules()->GetGameType() == TF_GAMETYPE_CTF || TFGameRules()->GetGameType() == TF_GAMETYPE_ARENA)
+	{
+		desiredRoster = ctfRoster;
 	}
 
 	// count classes in use by my team, not including me
@@ -1356,6 +1396,26 @@ void CTFBot::Spawn()
 	SetBrokenFormation( false );
 
 	GetVisionInterface()->ForgetAllKnownEntities();
+
+	GiveRandomItem(LOADOUT_POSITION_PRIMARY);
+	GiveRandomItem(LOADOUT_POSITION_SECONDARY);
+	GiveRandomItem(LOADOUT_POSITION_MELEE);
+
+	CTFPlayerClass* classData = GetPlayerClass();
+	switch (classData->GetClassIndex())
+	{
+		case TF_CLASS_ENGINEER:
+			GiveRandomItem(LOADOUT_POSITION_PDA);
+			break;
+
+		case TF_CLASS_SPY:
+			GiveRandomItem(LOADOUT_POSITION_PDA2);
+			break;
+	}
+
+	GiveRandomItem(LOADOUT_POSITION_HEAD);
+	GiveRandomItem(LOADOUT_POSITION_MISC);
+	GiveRandomItem(LOADOUT_POSITION_MISC2);
 }
 
 
@@ -4365,34 +4425,33 @@ void CTFBot::UpdateDelayedThreatNotices( void )
 
 
 //---------------------------------------------------------------------------------------------
-void CTFBot::GiveRandomItem( loadout_positions_t loadoutPosition )
+void CTFBot::GiveRandomItem(loadout_positions_t loadoutPosition)
 {
-	CUtlVector< const CEconItemDefinition * > itemVector;
+	CUtlVector< const CEconItemDefinition* > itemVector;
 
 	const CEconItemSchema::ItemDefinitionMap_t& mapItemDefs = ItemSystem()->GetItemSchema()->GetItemDefinitionMap();
-	FOR_EACH_MAP_FAST( mapItemDefs, i )
-	{
-		const CTFItemDefinition *pItemDef = dynamic_cast< const CTFItemDefinition * >( mapItemDefs[i] );
 
-		if ( pItemDef && pItemDef->GetLoadoutSlot( GetPlayerClass()->GetClassIndex() ) == loadoutPosition )
-		{
-			itemVector.AddToTail( pItemDef );
-		}
+	int classIndex = GetPlayerClass()->GetClassIndex();
+	FOR_EACH_MAP_FAST(mapItemDefs, i)
+	{
+		const CTFItemDefinition* pItemDef = dynamic_cast<const CTFItemDefinition*>(mapItemDefs[i]);
+
+		if (pItemDef && pItemDef->CanBeUsedByClass(classIndex) && pItemDef->GetLoadoutSlot(classIndex) == loadoutPosition)
+			itemVector.AddToTail(pItemDef);
 	}
 
-	if ( itemVector.Count() > 0 )
-	{
-		int which = RandomInt( 0, itemVector.Count()-1 );
+	if (itemVector.Count() == 0) return;
+	int which = RandomInt(0, itemVector.Count() - 1);
 
-/*
-		CBaseCombatWeapon *myMelee = me->Weapon_GetSlot( TF_WPN_TYPE_MELEE );
-		me->Weapon_Detach( myMelee );
-		UTIL_Remove( myMelee );
-*/
+	/*
+			CBaseCombatWeapon *myMelee = me->Weapon_GetSlot( TF_WPN_TYPE_MELEE );
+			me->Weapon_Detach( myMelee );
+			UTIL_Remove( myMelee );
+	*/
 
-		const char *itemName = itemVector[ which ]->GetDefinitionName();
-		BotGenerateAndWearItem( this, itemName );
-	}
+	const char* itemName = itemVector[which]->GetDefinitionName();
+	const char* itemClass = itemVector[which]->GetItemClass();
+	BotGenerateAndWearItem(this, itemName, itemClass);
 }
 
 

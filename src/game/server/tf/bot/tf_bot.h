@@ -28,7 +28,7 @@ class CTFBotActionPoint;
 class CObjectSentrygun;
 class CTFBotGenerator;
 
-extern void BotGenerateAndWearItem( CTFPlayer *pBot, const char *itemName );
+extern void BotGenerateAndWearItem( CTFPlayer *pBot, const char *itemName, const char* itemClass );
 
 //----------------------------------------------------------------------------
 // These must remain in sync with the bot_generator's spawnflags in tf.fgd:
@@ -335,7 +335,7 @@ public:
 	bool FindSplashTarget( CBaseEntity *target, float maxSplashRadius, Vector *splashTarget ) const;
 
 	void GiveRandomItem( loadout_positions_t loadoutPosition );
-	void ScriptGenerateAndWearItem( const char *pszItemName ) { if ( pszItemName ) BotGenerateAndWearItem( this, pszItemName ); }
+	void ScriptGenerateAndWearItem( const char *pszItemName ) { if ( pszItemName ) BotGenerateAndWearItem( this, pszItemName, NULL ); }
 
 	enum MissionType
 	{

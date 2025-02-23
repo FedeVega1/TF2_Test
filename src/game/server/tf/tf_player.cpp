@@ -3460,14 +3460,24 @@ bool CTFPlayer::ApplyPunchImpulseX ( float flImpulse )
 	return bFlinch;
 }
 
+void CTFPlayer::GenerateFakeInventory()
+{
+	m_Inventory.GenerateRandomLoadoutForFakeClient(LOADOUT_POSITION_PRIMARY, GetPlayerClass()->GetClassIndex());
+	m_Inventory.GenerateRandomLoadoutForFakeClient(LOADOUT_POSITION_SECONDARY, GetPlayerClass()->GetClassIndex());
+	m_Inventory.GenerateRandomLoadoutForFakeClient(LOADOUT_POSITION_MELEE, GetPlayerClass()->GetClassIndex());
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Request this player's inventories from the steam backend
 //-----------------------------------------------------------------------------
 void CTFPlayer::UpdateInventory( bool bInit )
 {
 #if !defined(NO_STEAM)
-	if ( IsFakeClient() )
+	if (IsFakeClient())
+	{
+		GenerateFakeInventory();
 		return;
+	}
 
 	if ( bInit || !m_Inventory.GetSOC() )
 	{

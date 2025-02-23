@@ -151,6 +151,10 @@ protected:
 	itemid_t		m_AccountLoadoutItems[ ACCOUNT_LOADOUT_POSITION_COUNT ];
 
 	friend class CTFInventoryManager;
+
+	// MOD
+public:
+	void GenerateRandomLoadoutForFakeClient(const loadout_positions_t& loadoutPos, const int& classIndex);
 };
 
 //-----------------------------------------------------------------------------

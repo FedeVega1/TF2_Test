@@ -1383,7 +1383,7 @@ CON_COMMAND_F( bot_teleport, "Teleport the specified bot to the specified positi
 //------------------------------------------------------------------------------
 // Purpose: Force the specified bot to create & equip an item
 //------------------------------------------------------------------------------
-void BotGenerateAndWearItem( CTFPlayer *pBot, const char *itemName )
+void BotGenerateAndWearItem( CTFPlayer *pBot, const char *itemName, const char* itemClass )
 {
 	if ( !pBot )
 		return;
@@ -1393,33 +1393,31 @@ void BotGenerateAndWearItem( CTFPlayer *pBot, const char *itemName )
 	criteria.SetQuality( AE_USE_SCRIPT_VALUE );
 	criteria.BAddCondition( "name", k_EOperator_String_EQ, itemName, true );
 
-	CBaseEntity *pItem = ItemGeneration()->GenerateRandomItem( &criteria, pBot->GetAbsOrigin(), vec3_angle );
-	if ( pItem )
+	CBaseEntity* pItem = ItemGeneration()->GenerateRandomItem(&criteria, pBot->GetAbsOrigin(), vec3_angle, itemClass);
+
+	if (!pItem)
 	{
-		// If it's a weapon, remove the current one, and give us this one.
-		CBaseEntity	*pExisting = pBot->Weapon_OwnsThisType(pItem->GetClassname());
-		if ( pExisting )
-		{
-			CBaseCombatWeapon *pWpn = dynamic_cast<CBaseCombatWeapon *>(pExisting);
-			pBot->Weapon_Detach( pWpn );
-			UTIL_Remove( pExisting );
-		}
-
-		// Fake global id
-		static int s_nFakeID = 1;
-		static_cast<CEconEntity*>(pItem)->GetAttributeContainer()->GetItem()->SetItemID( s_nFakeID++ );
-
-		DispatchSpawn( pItem );
-		static_cast<CEconEntity*>(pItem)->GiveTo( pBot );
-
-		pBot->PostInventoryApplication();
+		Msg("Failed to create an item named %s - %s\n", itemName, itemClass);
+		return;
 	}
-	else
+
+	// If it's a weapon, remove the current one, and give us this one.
+	CBaseEntity* pExisting = pBot->Weapon_OwnsThisType(pItem->GetClassname());
+	if (pExisting)
 	{
-		{
-			Msg( "Failed to create an item named %s\n", itemName );
-		}
+		CBaseCombatWeapon* pWpn = dynamic_cast<CBaseCombatWeapon*>(pExisting);
+		pBot->Weapon_Detach(pWpn);
+		UTIL_Remove(pExisting);
 	}
+
+	// Fake global id
+	static int s_nFakeID = 1;
+	static_cast<CEconEntity*>(pItem)->GetAttributeContainer()->GetItem()->SetItemID(s_nFakeID++);
+
+	DispatchSpawn(pItem);
+	static_cast<CEconEntity*>(pItem)->GiveTo(pBot);
+
+	pBot->PostInventoryApplication();
 }
 
 void BotGenerateAndWearItem( CTFPlayer *pBot, CEconItemView *pItem )
@@ -1452,7 +1450,7 @@ void BotGenerateAndWearItem( CTFPlayer *pBot, CEconItemView *pItem )
 	}
 	else
 	{
-		BotGenerateAndWearItem( pBot, pItem->GetItemDefinition()->GetDefinitionName() );
+		BotGenerateAndWearItem( pBot, pItem->GetItemDefinition()->GetDefinitionName(), pItem->GetItemDefinition()->GetItemClass() );
 	}
 }
 
